@@ -1,0 +1,14 @@
+#Gradle
+.gradle/
+build/
+gradle-wrapper.jar
+
+# IntelliJ IDEA
+.idea/
+*.iml
+*.iws
+*.ipr
+
+login/dist/
+web-server/logs
+.DS_Store
