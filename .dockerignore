@@ -1,0 +1,12 @@
+*.iml
+.gradle
+build
+out
+target
+*.log
+.idea
+*.swp
+.DS_Store
+.git
+.gitignore
+proof/
