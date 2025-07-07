@@ -13,4 +13,6 @@ import java.util.List;
 public interface ScrapeService {
 
     List<SearchResponse> scrapeAmazon(SearchRequest searchRequest);
+
+    List<SearchResponse> scrapeFlipkart(SearchRequest searchRequest);
 }

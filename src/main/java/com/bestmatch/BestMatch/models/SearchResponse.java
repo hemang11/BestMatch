@@ -15,6 +15,8 @@ public class SearchResponse {
 
     private String productName;
 
+    private SearchPlatformType platform;
+
     public String getUrl() {
         return url;
     }
@@ -41,6 +43,14 @@ public class SearchResponse {
 
     public String getProductName() {
         return productName;
+    }
+
+    public SearchPlatformType getPlatform() {
+        return platform;
+    }
+
+    public void setPlatform(SearchPlatformType platform) {
+        this.platform = platform;
     }
 
     public void setProductName(String productName) {

@@ -1,5 +1,6 @@
 package com.bestmatch.BestMatch;
 
+import com.bestmatch.BestMatch.util.MatchUtil;
 import io.github.bonigarcia.wdm.WebDriverManager;
 import org.junit.jupiter.api.Test;
 import org.openqa.selenium.By;
@@ -10,6 +11,7 @@ import org.openqa.selenium.chrome.ChromeOptions;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.List;
 
@@ -50,7 +52,8 @@ class BestMatchApplicationTests {
         WebDriverManager.chromedriver().setup();
 
         ChromeOptions options = new ChromeOptions();
-        options.addArguments("--start-maximized");
+        options.addArguments("--headless");
+        //options.addArguments("--start-maximized");
         options.addArguments("--disable-blink-features=AutomationControlled");
         options.addArguments("window-size=1920,1080");
         options.addArguments("user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/119.0.0.0 Safari/537.36");
@@ -59,14 +62,13 @@ class BestMatchApplicationTests {
         return driver;
     }
 
-
     @Test
     public void scrapeAmazon() {
         try {
             WebDriver driver = getWebDriver();
 
 
-            String query = "iPhone 16 Pro 128GB";
+            String query = "Iphone 16 Pro Max 128 GB";
             System.out.println("\n📦 Amazon:");
             String url = "https://www.amazon.in/s?k=" + URLEncoder.encode(query, "UTF-8");
             driver.get(url);
@@ -95,6 +97,46 @@ class BestMatchApplicationTests {
             }
         } catch (Exception eX) {
             System.out.printf("hahahahah");
+        }
+    }
+
+    @Test
+    public void scrapeFlipkart() {
+        try {
+            String searchquery = "Dildo";
+            String country = "IN";
+            final String query = URLEncoder.encode(searchquery, StandardCharsets.UTF_8);
+            final String baseUrl = MatchUtil.getFlipkartURL(country);
+            final String searchUrl = baseUrl + "?q=" + query;
+            WebDriver driver = getWebDriver();
+            driver.get(searchUrl);
+            Thread.sleep(3000); // allow JS to load
+
+
+
+            List<WebElement> products = driver.findElements(By.cssSelector("div[data-id]"));
+            int count = 0;
+            for (WebElement p : products) {
+                try {
+                    String title = p.findElement(By.xpath(".//*[self::div or self::a][string-length(text()) > 10]")).getText();
+                    String link = p.findElement(By.cssSelector("a")).getDomAttribute("href");
+                    String price = "";
+                    try {
+                        price = p.findElement(By.cssSelector(".Nx9bqj")).getText();
+                    } catch (Exception ignored) {
+                    }
+                    System.out.println("Title: " + title);
+                    System.out.println("Price: ₹" + price);
+                    System.out.println("Link: https://www.amazon.in" + link);
+                    System.out.println("-----");
+                    if (++count >= 5) break;
+                } catch (Exception e) {
+                    System.out.printf("oooo");
+                    // skip malformed items
+                }
+            }
+        } catch (Exception eX) {
+            System.out.printf("Ooopsss....");
         }
     }
 

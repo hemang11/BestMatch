@@ -21,7 +21,7 @@ import java.util.concurrent.*;
 public class MatchServiceImpl implements MatchService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(MatchServiceImpl.class);
-    private static final long TIMEOUT_IN_SECONDS = 30;
+    private static final long TIMEOUT_IN_MINUTES = 5;
     private final ExecutorService executorService;
     private final ScrapeService scrapeService;
 
@@ -35,11 +35,16 @@ public class MatchServiceImpl implements MatchService {
         List<Future<List<SearchResponse>>> futureList = new ArrayList<>();
         List<SearchResponse> foundSearchResult = new ArrayList<>();
         futureList.add(executorService.submit(() -> scrapeService.scrapeAmazon(searchRequest)));
+        futureList.add(executorService.submit(() -> scrapeService.scrapeFlipkart(searchRequest)));
+        //futureList.add(executorService.submit(() -> scrapeService.scrapeFlipkart(searchRequest)));
+        //futureList.add(executorService.submit(() -> scrapeService.scrapeWalmart(searchRequest)));
 
         for (Future<List<SearchResponse>> result : futureList) {
             try {
-                List<SearchResponse> searchResponses = result.get(TIMEOUT_IN_SECONDS, TimeUnit.SECONDS);
-                foundSearchResult.addAll(searchResponses);
+                List<SearchResponse> searchResponses = result.get(TIMEOUT_IN_MINUTES, TimeUnit.MINUTES);
+                if (searchResponses != null && searchResponses.size() > 0) {
+                    foundSearchResult.addAll(searchResponses);
+                }
             } catch (TimeoutException timeoutException) {
                 LOGGER.error("[MatchServiceImpl][Error] Timeout, message : {}", timeoutException.getMessage());
                 result.cancel(true);
