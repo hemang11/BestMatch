@@ -23,8 +23,8 @@ curl -X POST "http://localhost:9111/rest/v1/best-match" \
 **Body:**
 ```json
 {
-  "country": "US",
-  "query": "iPhone 14 Pro Max"
+  "country": "IN",
+  "query": "iPhone 16 Pro Max 128 GB"
 }
 ```
 
