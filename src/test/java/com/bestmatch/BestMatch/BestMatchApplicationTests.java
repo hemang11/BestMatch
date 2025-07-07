@@ -103,7 +103,7 @@ class BestMatchApplicationTests {
     @Test
     public void scrapeFlipkart() {
         try {
-            String searchquery = "Dildo";
+            String searchquery = "nokia";
             String country = "IN";
             final String query = URLEncoder.encode(searchquery, StandardCharsets.UTF_8);
             final String baseUrl = MatchUtil.getFlipkartURL(country);

@@ -88,7 +88,7 @@ public class ScrapeServiceImpl implements ScrapeService {
         try {
             final String query = URLEncoder.encode(searchRequest.getQuery(), StandardCharsets.UTF_8);
             final String baseUrl = MatchUtil.getFlipkartURL(searchRequest.getCountry());
-            final String searchUrl = baseUrl + "?q=" + query;
+            final String searchUrl = baseUrl + "/search?q=" + query;
             webDriver.get(searchUrl);
             Thread.sleep(3000); // loading the browser
 

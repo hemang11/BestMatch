@@ -32,7 +32,7 @@ public final class MatchUtil {
         // India OP
         switch (country.toUpperCase(Locale.ROOT)) {
             case "IN" -> {
-                return "https://www.flipkart.com/search";
+                return "https://www.flipkart.com";
             }
             default -> {
                 // Abhi bas itna hi....
