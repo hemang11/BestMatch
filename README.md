@@ -59,3 +59,8 @@ curl -X POST "http://localhost:9111/rest/v1/best-match" \
 ![Demo1](proof/1.png)
 
 ![Demo2](proof/2.png)
+
+![Demo3](proof/3.png)
+
+![Demo4](proof/4.png)
+
