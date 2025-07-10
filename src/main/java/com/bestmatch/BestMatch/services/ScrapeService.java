@@ -15,4 +15,6 @@ public interface ScrapeService {
     List<SearchResponse> scrapeAmazon(SearchRequest searchRequest);
 
     List<SearchResponse> scrapeFlipkart(SearchRequest searchRequest);
+
+    List<SearchResponse> scrapeGFG(SearchRequest searchRequest);
 }

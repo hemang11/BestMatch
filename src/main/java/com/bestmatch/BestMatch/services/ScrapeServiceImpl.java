@@ -4,6 +4,8 @@ import com.bestmatch.BestMatch.models.SearchPlatformType;
 import com.bestmatch.BestMatch.models.SearchRequest;
 import com.bestmatch.BestMatch.models.SearchResponse;
 import com.bestmatch.BestMatch.util.MatchUtil;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import io.github.bonigarcia.wdm.WebDriverManager;
 import io.micrometer.common.util.StringUtils;
 import org.openqa.selenium.By;
@@ -15,6 +17,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
+import java.io.File;
+import java.io.PrintWriter;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -38,7 +42,7 @@ public class ScrapeServiceImpl implements ScrapeService {
         final WebDriver webDriver = getWebDriver(SearchPlatformType.AMAZON.name());
         List<SearchResponse> searchResponses = new ArrayList<>();
         try {
-            final String query = searchRequest.getQuery();
+            final String query = searchRequest.getSearchQuery();
             final String country = searchRequest.getCountry();
             final String amazonBaseURL = MatchUtil.getAmazonBaseURL(country);
             final String url = amazonBaseURL + "/s?k=" + URLEncoder.encode(query, StandardCharsets.UTF_8);
@@ -73,12 +77,12 @@ public class ScrapeServiceImpl implements ScrapeService {
                 }
             }
         } catch (Exception eX) {
-            LOGGER.error("[ScrapeServiceImpl] Error scraping Amazon for query : {} , country : {}", searchRequest.getQuery(), searchRequest.getCountry());
+            LOGGER.error("[ScrapeServiceImpl] Error scraping Amazon for query : {} , country : {}", searchRequest.getSearchQuery(), searchRequest.getCountry());
         } finally {
             LOGGER.info("[ScrapeServiceImpl] Destroying web driver session for platform : {}", SearchPlatformType.AMAZON.name());
             webDriver.quit();
         }
-        return removeSponsoredProducts(searchResponses, searchRequest.getQuery());
+        return removeSponsoredProducts(searchResponses, searchRequest.getSearchQuery());
     }
 
     @Override
@@ -86,7 +90,7 @@ public class ScrapeServiceImpl implements ScrapeService {
         final WebDriver webDriver = getWebDriver(SearchPlatformType.FLIPKART.name());
         List<SearchResponse> searchResponses = new ArrayList<>();
         try {
-            final String query = URLEncoder.encode(searchRequest.getQuery(), StandardCharsets.UTF_8);
+            final String query = URLEncoder.encode(searchRequest.getSearchQuery(), StandardCharsets.UTF_8);
             final String baseUrl = MatchUtil.getFlipkartURL(searchRequest.getCountry());
             final String searchUrl = baseUrl + "/search?q=" + query;
             webDriver.get(searchUrl);
@@ -120,12 +124,90 @@ public class ScrapeServiceImpl implements ScrapeService {
                 }
             }
         } catch (Exception eX) {
-            LOGGER.error("[ScrapeServiceImpl] Error scraping Flipkart for query : {} , country : {}", searchRequest.getQuery(), searchRequest.getCountry());
+            LOGGER.error("[ScrapeServiceImpl] Error scraping Flipkart for query : {} , country : {}", searchRequest.getSearchQuery(), searchRequest.getCountry());
         } finally {
             LOGGER.info("[ScrapeServiceImpl] Destroying web driver session for platform : {}", SearchPlatformType.FLIPKART.name());
             webDriver.quit();
         }
-        return removeSponsoredProducts(searchResponses, searchRequest.getQuery());
+        return removeSponsoredProducts(searchResponses, searchRequest.getSearchQuery());
+    }
+
+    @Override
+    public List<SearchResponse> scrapeGFG(SearchRequest searchRequest) {
+        final WebDriver webDriver = getWebDriver(SearchPlatformType.GFG.name());
+        List<SearchResponse> searchResponses = new ArrayList<>();
+        try {
+            //https://www.geeksforgeeks.org/aptitude/top-100-puzzles-asked-in-interviews/
+            final String baseUrl = MatchUtil.getGFGBaseUrl();
+            final String searchUrl = baseUrl + searchRequest.getQueryEndpoint();
+            webDriver.get(searchUrl);
+            Thread.sleep(3000); // loading the browser
+
+            List<WebElement> tables = webDriver.findElements(By.cssSelector("div.text table"));
+            List<List<String>> tableData = new ArrayList<>();
+            boolean header = false;
+            for (WebElement table : tables) {
+                List<WebElement> rows = table.findElements(By.tagName("tr"));
+
+                int rowNum = 0;
+                for (WebElement row : rows) {
+                    List<WebElement> cells = row.findElements(By.tagName("td"));
+                    if (cells.isEmpty()) {
+                        cells = row.findElements(By.tagName("th"));
+                    }
+
+                    int colNum = 0;
+                    List<String> rowData = new ArrayList<>();
+                    String questionLink = "";
+                    for (WebElement cell : cells) {
+                        String cellText = cell.getText();
+                        if (cellText.contains(",")) {
+                            cellText = cellText.replace(",", "_");
+                        }
+                        rowData.add(cellText);
+                        if (rowNum != 0 && colNum == 1) {
+                            questionLink = cell.findElements(By.cssSelector("a")).get(0).getDomAttribute("href");
+                        }
+                        colNum++;
+                    }
+                    if (StringUtils.isNotBlank(questionLink)) {
+                        rowData.add(questionLink);
+
+                    }
+                    if (rowNum == 0 && !header) {
+                        rowData.add("Link");
+                    }
+                    if (rowNum == 0) {
+                        if (!header) {
+                            tableData.add(rowData);
+                            header = true;
+                        }
+                    } else {
+                        tableData.add(rowData);
+                    }
+                    rowNum++;
+                }
+            }
+
+            ObjectMapper mapper = new ObjectMapper();
+            String json = mapper.writeValueAsString(tableData);
+            mapper.enable(SerializationFeature.INDENT_OUTPUT);
+            SearchResponse searchResponse = new SearchResponse();
+            searchResponse.setRawJson(json);
+            searchResponses.add(searchResponse);
+            final String home = System.getProperty("user.home");
+            try (PrintWriter writer = new PrintWriter(new File(home + "/Desktop/table.csv"))) {
+                for (List<String> rowData : tableData) {
+                    writer.println(String.join(",", rowData));
+                }
+            }
+        } catch (Exception eX) {
+            LOGGER.error("[ScrapeServiceImpl] Error scraping GFG for query : {} , country : {}", searchRequest.getSearchQuery(), searchRequest.getCountry());
+        } finally {
+            LOGGER.info("[ScrapeServiceImpl] Destroying web driver session for platform : {}", SearchPlatformType.GFG.name());
+            webDriver.quit();
+        }
+        return searchResponses;
     }
 
 

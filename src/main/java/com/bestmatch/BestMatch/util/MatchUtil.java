@@ -28,6 +28,10 @@ public final class MatchUtil {
         }
     }
 
+    public static String getGFGBaseUrl() {
+        return "https://www.geeksforgeeks.org";
+    }
+
     public static String getFlipkartURL(String country) {
         // India OP
         switch (country.toUpperCase(Locale.ROOT)) {

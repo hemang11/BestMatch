@@ -7,5 +7,6 @@ package com.bestmatch.BestMatch.models;
  */
 public enum SearchPlatformType {
     AMAZON,
-    FLIPKART
+    FLIPKART,
+    GFG
 }
