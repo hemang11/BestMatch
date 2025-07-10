@@ -34,8 +34,8 @@ public class MatchServiceImpl implements MatchService {
     public List<SearchResponse> getBestMatch(SearchRequest searchRequest) {
         List<Future<List<SearchResponse>>> futureList = new ArrayList<>();
         List<SearchResponse> foundSearchResult = new ArrayList<>();
-        //futureList.add(executorService.submit(() -> scrapeService.scrapeAmazon(searchRequest)));
-        //futureList.add(executorService.submit(() -> scrapeService.scrapeFlipkart(searchRequest)));
+        futureList.add(executorService.submit(() -> scrapeService.scrapeAmazon(searchRequest)));
+        futureList.add(executorService.submit(() -> scrapeService.scrapeFlipkart(searchRequest)));
         futureList.add(executorService.submit(() -> scrapeService.scrapeGFG(searchRequest)));
         //futureList.add(executorService.submit(() -> scrapeService.scrapeWalmart(searchRequest)));
 
